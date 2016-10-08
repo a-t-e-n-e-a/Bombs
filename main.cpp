@@ -2,62 +2,89 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <random>
+#include <map>
 
 using namespace std;
 
 /**
- * Auto-generated code below aims at helping you parse
- * the standard input according to the problem statement.
+ * Shoot enemies before they collect all the incriminating data!
+ * The closer you are to an enemy, the more damage you do but don't get too close or you'll get killed.
  **/
+struct coordinates{
+  int x; 
+  int y;
+  coordinates(int ix, int iy){
+  x=ix;
+  y=iy;
+  }
+  coordinates(){
+  x=-1;
+  y=-1;
+  }
+}; 
+
+struct enemy{
+  int x; 
+  int y;
+  int life;
+  enemy(int ix, int iy, int il){
+  x=ix;
+  y=iy;
+  life=il;
+  }
+};
+
 int main()
 {
-    int width;
-    int height;
-    int myId;
-    cin >> width >> height >> myId; cin.ignore();
-    srand (time(NULL));
-    int myx, myy, bombs;
-    int nextx=rand() % 6 + 3;
-    int nexty=rand() % 4 + 3; 
-
+    coordinates me;
+    map<int, enemy> enemis;
+    map<int, coordinates> dataPoints;
     // game loop
     while (1) {
-        for (int i = 0; i < height; i++) {
-            string row;
-            getline(cin, row);
-            
-
- 
+        int x;
+        int y;
+        cin >> x >> y; cin.ignore();
+        me.x=x;
+        me.y=y;
+        int dataCount;
+            int dataId;
+            int dataX;
+            int dataY;
+        cin >> dataCount; cin.ignore();
+        for (int i = 0; i < dataCount; i++) {
+            cin >> dataId >> dataX >> dataY; cin.ignore();
+            coordinates coord = coordinates(dataX, dataY);
+            dataPoints.emplace(dataId, coord);
         }
-        int entities;
-        
-        cin >> entities; cin.ignore();
-        for (int i = 0; i < entities; i++) {
-            int entityType;
-            int owner;
-            int x;
-            int y;
-            int param1;
-            int param2;
-            cin >> entityType >> owner >> x >> y >> param1 >> param2; cin.ignore();
-            //cerr << entityType << owner << x >> y >> param1 >> param2; cin.ignore();
-            if (owner==myId && entityType==0){
-                myx=x;
-                myy=y;
-                bombs=param1;
-            }
+        int enemyCount;
+        int enemyId;
+        cin >> enemyCount; cin.ignore();
+        bool finish=false;
+        for (int i = 0; i < enemyCount; i++) {
+            int enemyX;
+            int enemyY;
+            int enemyLife;
+            cin >> enemyId >> enemyX >> enemyY >> enemyLife; cin.ignore();
+			enemy nemesis=enemy(enemyX, enemyY, enemyLife);
+            enemis.emplace(enemyId, nemesis);
+            if (finish==false && ((me.x-enemyX)*(me.x-enemyX) + (me.y-enemyY)*(me.y-enemyY)) <3000*3000){
+                cerr << "AAAAAAAAAAAAAAAAAAAAAAA"<< endl;
+                cout << "SHOOT "<< enemyId << endl;
+                finish=true;
                 
+            }
         }
         
-        if (abs(nextx-myx)<2 && abs(nexty-myy)<2 && bombs>0){
-            cout << "BOMB " << nextx <<" "<< nexty << endl;
-            nextx=rand() % 12;
-            nexty=rand() % 6; 
-        }
-        else cout << "MOVE "<< nextx <<" "<< nexty << endl;
+        
         // Write an action using cout. DON'T FORGET THE "<< endl"
         // To debug: cerr << "Debug messages..." << endl;
-
+        if(enemyCount && finish==false) 
+        {
+            cout << "SHOOT "<< enemyId << endl;
+        }
+        else 
+        {
+            cout << "MOVE " << dataX << " " << dataY << endl; 
+        }
+        //cout << "MOVE 8000 4500" << endl; // MOVE x y or SHOOT id
     }
-}
