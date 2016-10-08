@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 
+
 using namespace std;
 
 /**
@@ -33,6 +34,46 @@ struct enemy{
   life=il;
   }
 };
+
+coordinates getPosition(coordinates origin, int nbTours, coordinates cible){
+    int EN_MOVE_RADIUS=500;
+	coordinates result=coordinates(-1,-1);
+	if (result.x == origin.x) {
+	  result.x = origin.x;
+	  result.y = origin.y > cible.y ? origin.y - EN_MOVE_RADIUS : origin.y + EN_MOVE_RADIUS;
+	} 
+	else {
+	  double m =  1.0*(cible.y - origin.y) /  (cible.x - origin.x);
+	  double c = 500.0 / (sqrt(1 + m*m));
+	  result.x = floor(origin.x + c);
+	    if (abs(origin.x - cible.x) < abs(result.x - cible.x)) {
+	      result.x = floor(origin.x - c);
+	    }
+	    result.y = floor((result.x - origin.x) * m + origin.y);
+	  }
+	  cerr << "*** New pos is : " << result.x << " " << result.y;
+	  return result;
+};
+
+double distance(coordinates c0, enemy c1){
+	return sqrt((c0.x-c1.x)*(c0.x-c1.x)+(c0.y-c1.y)*(c0.y-c1.y));
+}
+
+map<int,int> findTargetsET(map<int, enemy> enemis, map<int, coordinates> dataPoints){
+	map<int,int> resultET;
+	double dist;
+	for (auto &enemy : enemis){
+		double min = DBL_MAX;
+		int id = -1;
+		for (auto &data : dataPoints){
+			dist=distance(data.second,enemy.second)
+			if(dist < min) min=dist;
+			id = data.first;
+		}
+		resultET.emplace(enemy.first,data.first);
+	}
+	
+}
 
 int main()
 {
@@ -88,3 +129,4 @@ int main()
         }
         //cout << "MOVE 8000 4500" << endl; // MOVE x y or SHOOT id
     }
+}
