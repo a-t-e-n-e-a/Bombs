@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
-
+#include <cfloat>
 
 using namespace std;
 
@@ -59,18 +59,22 @@ double distance(coordinates c0, enemy c1){
 	return sqrt((c0.x-c1.x)*(c0.x-c1.x)+(c0.y-c1.y)*(c0.y-c1.y));
 }
 
-map<int,int> findTargetsET(map<int, enemy> enemis, map<int, coordinates> dataPoints){
+map<int,int> & findTargetsET(map<int, enemy> &enemis, map<int, coordinates> &dataPoints){
 	map<int,int> resultET;
 	double dist;
-	for (auto &enemy : enemis){
+	for (std::map<int,enemy>::iterator enemy=enemis.begin(); enemy!=enemis.end(); ++enemy){
 		double min = DBL_MAX;
 		int id = -1;
-		for (auto &data : dataPoints){
-			dist=distance(data.second,enemy.second)
-			if(dist < min) min=dist;
-			id = data.first;
+		for (std::map<int,coordinates>::iterator data=dataPoints.begin(); data!=dataPoints.end(); ++data){
+			dist=distance(data->second,enemy->second);
+			if(dist < min) 
+			{
+			    min=dist;
+			    id = data->first;
+			}
 		}
-		resultET.emplace(enemy.first,data.first);
+		resultET.emplace(enemy->first,id);
+		cerr << "enemy : " <<enemy->first << " cible : " <<id << endl;
 	}
 	
 }
@@ -92,6 +96,7 @@ int main()
             int dataX;
             int dataY;
         cin >> dataCount; cin.ignore();
+        dataPoints.clear();
         for (int i = 0; i < dataCount; i++) {
             cin >> dataId >> dataX >> dataY; cin.ignore();
             coordinates coord = coordinates(dataX, dataY);
@@ -101,6 +106,7 @@ int main()
         int enemyId;
         cin >> enemyCount; cin.ignore();
         bool finish=false;
+        enemis.clear();
         for (int i = 0; i < enemyCount; i++) {
             int enemyX;
             int enemyY;
@@ -115,6 +121,8 @@ int main()
                 
             }
         }
+        map<int,int>* enemyTarget;
+        enemyTarget=&findTargetsET(enemis, dataPoints);
         
         
         // Write an action using cout. DON'T FORGET THE "<< endl"
