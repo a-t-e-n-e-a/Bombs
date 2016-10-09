@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <map>
 #include <cfloat>
+#include <list>
 
 using namespace std;
 
@@ -35,7 +36,7 @@ struct enemy{
   }
 };
 
-coordinates getPosition(coordinates origin, int nbTours, coordinates cible){
+coordinates& getPosition(coordinates origin, int nbTours, coordinates cible){
     int EN_MOVE_RADIUS=500;
 	coordinates result=coordinates(-1,-1);
 	if (result.x == origin.x) {
@@ -59,6 +60,18 @@ double distance(coordinates c0, enemy c1){
 	return sqrt((c0.x-c1.x)*(c0.x-c1.x)+(c0.y-c1.y)*(c0.y-c1.y));
 }
 
+list<int>& dangerousEnemies(coordinates me, map<int, enemy> &enemis){
+    list<int> result;
+    int dist;
+    for (std::map<int,enemy>::iterator enemy=enemis.begin(); enemy!=enemis.end(); ++enemy){
+    		dist=distance(me,enemy->second);
+    		if (dist<3000) {
+    		    result.push_back(enemy->first);
+    		    cerr << "enemy : " << enemy->first << " is too close" << endl;
+    		}
+    }
+}
+
 map<int,int> & findTargetsET(map<int, enemy> &enemis, map<int, coordinates> &dataPoints){
 	map<int,int> resultET;
 	double dist;
@@ -77,6 +90,42 @@ map<int,int> & findTargetsET(map<int, enemy> &enemis, map<int, coordinates> &dat
 		cerr << "enemy : " <<enemy->first << " cible : " <<id << endl;
 	}
 	
+}
+
+bool runAway(list<int> &killers, map<int, enemy> &enemis, map<int,int> &ET,  map<int, coordinates> &dataPoints, coordinates me){
+	map<int,coordinates> nextKillerPositions;
+	for(int killer : killers){
+		coordinates nextP;
+		coordinates actualP(enemis.at(killer).x,enemis.at(killer).y);
+		coordinates enemy(enemis.at(killer).x,enemis.at(killer).y);
+		nextP=getPosition(enemy, 1, dataPoints.at(ET.at(killer)) );
+		double dist=distance(me,enemis.at(killer));
+		if (dist < 2000){
+			nextKillerPositions.emplace(killer,nextP);
+		}
+	}
+	if (nextKillerPositions.empty()) return false;
+	else if (nextKillerPositions.size()<2 )//&& ) add dps data
+	{
+		cout << "SHOOT "<< nextKillerPositions.begin()->first << endl;
+		return true;
+	}
+	else {
+	    cerr << "I'm dead" << endl;/*
+		int x=0;
+		int y=0;
+		int i=0;
+		for(std::map<int,coordinates>::iterator killer=nextKillerPosition.begin(); killer!=nextKillerPosition.end(); ++killer){
+			x+=(killer->second).x;
+			y+=(killer->second).y;
+			i++;
+		}
+		x=x/i;
+		y=y/i;
+		coordinates* destiny;
+		//destiny=&getPosition(me, 2, coordinates cible){
+		//cout "MOVE" <<*/ 
+	}
 }
 
 int main()
@@ -114,16 +163,18 @@ int main()
             cin >> enemyId >> enemyX >> enemyY >> enemyLife; cin.ignore();
 			enemy nemesis=enemy(enemyX, enemyY, enemyLife);
             enemis.emplace(enemyId, nemesis);
-            if (finish==false && ((me.x-enemyX)*(me.x-enemyX) + (me.y-enemyY)*(me.y-enemyY)) <3000*3000){
+            /*if (finish==false && ((me.x-enemyX)*(me.x-enemyX) + (me.y-enemyY)*(me.y-enemyY)) <3000*3000){
                 cerr << "AAAAAAAAAAAAAAAAAAAAAAA"<< endl;
                 cout << "SHOOT "<< enemyId << endl;
                 finish=true;
                 
-            }
+            }*/
         }
-        map<int,int>* enemyTarget;
-        enemyTarget=&findTargetsET(enemis, dataPoints);
-        
+        map<int,int> enemyTarget;
+        enemyTarget=findTargetsET(enemis, dataPoints);
+        list<int> danger;
+        danger=dangerousEnemies(me, enemis);
+        finish=runAway(danger, enemis, enemyTarget, dataPoints, me);
         
         // Write an action using cout. DON'T FORGET THE "<< endl"
         // To debug: cerr << "Debug messages..." << endl;
@@ -131,7 +182,7 @@ int main()
         {
             cout << "SHOOT "<< enemyId << endl;
         }
-        else 
+        else if (finish==false)
         {
             cout << "MOVE " << dataX << " " << dataY << endl; 
         }
